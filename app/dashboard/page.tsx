@@ -99,15 +99,16 @@ export default function VehicleTaxCalculator() {
       </form>
 
       {result && (
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-lg font-semibold text-blue-800">Grand Total:</span>
-            <span className="text-3xl font-bold text-blue-900">
-              Rs. {Array.isArray(result) ? result[0]?.grand_total : result.grand_total}
-            </span>
-          </div>
-        </div>
-      )}
+  <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+    <div className="flex justify-between items-center mb-4">
+      <span className="text-lg font-semibold text-blue-800">Grand Total:</span>
+      <span className="text-3xl font-bold text-blue-900">
+        Rs. {Array.isArray(result) ? result[0]?.grand_total : result.grand_total}
+      </span>
+    </div>
+    {/* Add breakdown details here */}
+  </div>
+)}
     </div>
   );
 }
