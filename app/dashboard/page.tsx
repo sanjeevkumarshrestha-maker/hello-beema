@@ -1,83 +1,119 @@
-import React from 'react';
+import { useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 
-export default function Dashboard() {
-  // Sample data - We will connect this to Supabase tomorrow!
-  const vehicles = [
-    { plate: "BA 3 PA 1234", status: "Healthy", expiry: "2082-03-15", cc: "160", color: "bg-green-100 text-green-700 border-green-200" },
-    { plate: "PRO-03-002", status: "Warning", expiry: "2081-11-20", cc: "220", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
-  ];
+// Ensure these are in your Vercel Environment Variables
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
+export default function VehicleTaxCalculator() {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [formData, setFormData] = useState({
+    vehicle_type: '2w',
+    vehicle_category: '126cc - 150cc',
+    expiry_date: '',
+    mfg_year: 2011,
+    buys_insurance: true
+  });
+
+  const calculateTax = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    const { data, error } = await supabase.rpc('calculate_hello_beema_final_v34', {
+      p_vehicle_type: formData.vehicle_type,
+      p_vehicle_category: formData.vehicle_category,
+      p_expiry_date_bs: formData.expiry_date,
+      p_payment_date_bs: new Date().toISOString().split('T')[0], // Today's Date
+      p_manufacture_year_ad: parseInt(formData.mfg_year),
+      p_buys_insurance: formData.buys_insurance
+    });
+
+    if (error) {
+      alert(error.message);
+    } else {
+      setResult(data);
+    }
+    setLoading(false);
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 font-sans">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-[#393ba8]">Hello Beema</h1>
-          <p className="text-slate-500">Namaste, your vehicle security center.</p>
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-md border border-gray-100">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Vehicle Tax Estimator</h2>
+      
+      <form onSubmit={calculateTax} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Type</label>
+            <select 
+              className="mt-1 block w-full border rounded-md p-2"
+              onChange={(e) => setFormData({...formData, vehicle_type: e.target.value})}
+            >
+              <option value="2w">2-Wheeler</option>
+              <option value="4w">4-Wheeler</option>
+              <option value="EV">Electric (EV)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Category</label>
+            <input 
+              type="text" 
+              placeholder="e.g. 126cc - 150cc"
+              className="mt-1 block w-full border rounded-md p-2"
+              value={formData.vehicle_category}
+              onChange={(e) => setFormData({...formData, vehicle_category: e.target.value})}
+              required
+            />
+          </div>
         </div>
-        <button className="bg-[#393ba8] hover:bg-[#1b75bc] text-white px-4 py-2 rounded-lg transition shadow-sm font-medium">
-          + Add Vehicle
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Expiry Date (BS)</label>
+            <input 
+              type="date" 
+              className="mt-1 block w-full border rounded-md p-2"
+              onChange={(e) => setFormData({...formData, expiry_date: e.target.value})}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Mfg Year (AD)</label>
+            <input 
+              type="number" 
+              className="mt-1 block w-full border rounded-md p-2"
+              value={formData.mfg_year}
+              onChange={(e) => setFormData({...formData, mfg_year: e.target.value})}
+              required
+            />
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+        >
+          {loading ? 'Calculating...' : 'Calculate Tax'}
         </button>
-      </header>
+      </form>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Dashboard Area */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-slate-700">Vehicle Health Carousel</h2>
-            <span className="text-xs text-slate-400">Swipe to view more →</span>
+      {result && (
+        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-lg font-semibold text-blue-800">Grand Total:</span>
+            <span className="text-3xl font-bold text-blue-900">Rs. {result.grand_total}</span>
           </div>
-          
-          <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
-            {vehicles.map((v) => (
-              <div key={v.plate} className="min-w-[320px] bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-[#1b75bc] transition-all">
-                <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 border ${v.color}`}>
-                  {v.status}
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800">{v.plate}</h3>
-                <div className="mt-6 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Tax Expiry (BS)</span>
-                    <span className="font-semibold text-slate-700">{v.expiry}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Engine Capacity</span>
-                    <span className="font-semibold text-slate-700">{v.cc} CC</span>
-                  </div>
-                </div>
-                <button className="w-full mt-6 py-3 bg-slate-50 hover:bg-[#393ba8] hover:text-white text-[#393ba8] font-bold rounded-xl transition-colors border border-slate-100">
-                  Manage Vehicle
-                </button>
-              </div>
-            ))}
+          <div className="text-sm text-blue-700 space-y-1">
+            <p>• Years Due: {result.breakdown.years_total}</p>
+            <p>• Late Fine: {result.breakdown.current_penalty_pct}</p>
+            <p>• Arrears Fine (32%): Rs. {result.breakdown.arrears_fine_32}</p>
+            <p>• Renewal Subtotal: Rs. {result.breakdown.renewal_subtotal}</p>
           </div>
         </div>
-
-        {/* Sidebar Actions */}
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-700 mb-5">Quick Actions</h2>
-            <div className="space-y-4">
-              <div className="p-4 border border-blue-50 rounded-xl hover:bg-blue-50 cursor-pointer transition group">
-                <p className="font-bold text-[#393ba8] group-hover:text-[#1b75bc]">Renew Bluebook</p>
-                <p className="text-xs text-slate-500 mt-1">Instant tax estimation & rider booking</p>
-              </div>
-              <div className="p-4 border border-slate-50 rounded-xl hover:bg-slate-50 cursor-pointer transition">
-                <p className="font-bold text-slate-700">Insurance Quote</p>
-                <p className="text-xs text-slate-500 mt-1">Compare third-party & full insurance</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-[#393ba8] to-[#1b75bc] p-6 rounded-2xl text-white">
-            <h3 className="font-bold text-lg mb-2">Need Help?</h3>
-            <p className="text-sm opacity-90 mb-4">Contact our support for bluebook pickup issues.</p>
-            <button className="w-full py-2 bg-white text-[#393ba8] rounded-lg font-bold text-sm">
-              Call Support
-            </button>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
