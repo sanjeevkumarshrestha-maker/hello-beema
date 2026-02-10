@@ -28,7 +28,7 @@ export default function VehicleTaxCalculator() {
       p_vehicle_category: formData.vehicle_category,
       p_expiry_date_bs: formData.expiry_date,
       p_payment_date_bs: new Date().toISOString().split('T')[0], // Today's Date
-      p_manufacture_year_ad: Number(formData.mfg_year),
+      p_manufacture_year_ad: Number(formData.mfg_year) as any,
       p_buys_insurance: formData.buys_insurance
     });
 
