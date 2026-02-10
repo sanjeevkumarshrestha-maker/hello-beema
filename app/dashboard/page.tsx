@@ -23,14 +23,26 @@ export default function VehicleTaxCalculator() {
     e.preventDefault();
     setLoading(true);
     
+   const calculateTax = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
     const { data, error } = await supabase.rpc('calculate_hello_beema_final_v34', {
       p_vehicle_type: formData.vehicle_type,
       p_vehicle_category: formData.vehicle_category,
       p_expiry_date_bs: formData.expiry_date,
-      p_payment_date_bs: new Date().toISOString().split('T')[0], // Today's Date
-      p_manufacture_year_ad: Number(formData.mfg_year) as any,
+      p_payment_date_bs: new Date().toISOString().split('T')[0],
+      p_manufacture_year_ad: Number(formData.mfg_year) as any, // The Fix
       p_buys_insurance: formData.buys_insurance
     });
+
+    if (error) {
+      alert(error.message);
+    } else {
+      setResult(data);
+    }
+    setLoading(false);
+  };
 
     if (error) {
       alert(error.message);
