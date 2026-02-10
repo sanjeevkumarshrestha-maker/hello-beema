@@ -4,13 +4,13 @@ import { createClient } from '@supabase/supabase-js';
 
 // Ensure these are in your Vercel Environment Variables
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export default function VehicleTaxCalculator() {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<any>(null);
   const [formData, setFormData] = useState({
     vehicle_type: '2w',
     vehicle_category: '126cc - 150cc',
@@ -19,11 +19,7 @@ export default function VehicleTaxCalculator() {
     buys_insurance: true
   });
 
-  const calculateTax = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-   const calculateTax = async (e) => {
+  const calculateTax = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
@@ -32,17 +28,9 @@ export default function VehicleTaxCalculator() {
       p_vehicle_category: formData.vehicle_category,
       p_expiry_date_bs: formData.expiry_date,
       p_payment_date_bs: new Date().toISOString().split('T')[0],
-      p_manufacture_year_ad: Number(formData.mfg_year) as any, // The Fix
+      p_manufacture_year_ad: Number(formData.mfg_year) as any, // The TypeScript Fix
       p_buys_insurance: formData.buys_insurance
     });
-
-    if (error) {
-      alert(error.message);
-    } else {
-      setResult(data);
-    }
-    setLoading(false);
-  };
 
     if (error) {
       alert(error.message);
@@ -62,6 +50,7 @@ export default function VehicleTaxCalculator() {
             <label className="block text-sm font-medium text-gray-700">Type</label>
             <select 
               className="mt-1 block w-full border rounded-md p-2"
+              value={formData.vehicle_type}
               onChange={(e) => setFormData({...formData, vehicle_type: e.target.value})}
             >
               <option value="2w">2-Wheeler</option>
@@ -88,6 +77,7 @@ export default function VehicleTaxCalculator() {
             <input 
               type="date" 
               className="mt-1 block w-full border rounded-md p-2"
+              value={formData.expiry_date}
               onChange={(e) => setFormData({...formData, expiry_date: e.target.value})}
               required
             />
@@ -98,7 +88,7 @@ export default function VehicleTaxCalculator() {
               type="number" 
               className="mt-1 block w-full border rounded-md p-2"
               value={formData.mfg_year}
-              onChange={(e) => setFormData({...formData, mfg_year: e.target.value})}
+              onChange={(e) => setFormData({...formData, mfg_year: parseInt(e.target.value)})}
               required
             />
           </div>
@@ -117,13 +107,13 @@ export default function VehicleTaxCalculator() {
         <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex justify-between items-center mb-4">
             <span className="text-lg font-semibold text-blue-800">Grand Total:</span>
-            <span className="text-3xl font-bold text-blue-900">Rs. {result.grand_total}</span>
+            <span className="text-3xl font-bold text-blue-900">Rs. {result[0]?.grand_total || result.grand_total}</span>
           </div>
           <div className="text-sm text-blue-700 space-y-1">
-            <p>• Years Due: {result.breakdown.years_total}</p>
-            <p>• Late Fine: {result.breakdown.current_penalty_pct}</p>
-            <p>• Arrears Fine (32%): Rs. {result.breakdown.arrears_fine_32}</p>
-            <p>• Renewal Subtotal: Rs. {result.breakdown.renewal_subtotal}</p>
+            <p>• Years Due: {result[0]?.breakdown?.years_total || result.breakdown?.years_total}</p>
+            <p>• Late Fine: {result[0]?.breakdown?.current_penalty_pct || result.breakdown?.current_penalty_pct}</p>
+            <p>• Arrears Fine (32%): Rs. {result[0]?.breakdown?.arrears_fine_32 || result.breakdown?.arrears_fine_32}</p>
+            <p>• Renewal Subtotal: Rs. {result[0]?.breakdown?.renewal_subtotal || result.breakdown?.renewal_subtotal}</p>
           </div>
         </div>
       )}
