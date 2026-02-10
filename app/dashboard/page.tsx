@@ -10,7 +10,7 @@ const supabase = createClient(
 export default function VehicleTaxCalculator() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({ 
     vehicle_type: '2w',
     vehicle_category: '126cc - 150cc',
     expiry_date: '',
