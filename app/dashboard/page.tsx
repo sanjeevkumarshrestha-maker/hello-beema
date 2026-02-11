@@ -18,11 +18,12 @@ export default function VehicleTaxCalculator() {
     buys_insurance: true
   });
 
-  // Common Categories for the Dropdown
+// UPDATED: Must match tax_rates table exactly
   const categories = {
-    '2w': ['Up to 125cc', '126cc - 150cc', '151cc - 250cc', '251cc - 400cc', '401cc - 650cc', 'Above 650cc'],
-    '4w': ['Up to 1000cc', '1001cc - 1500cc', '1501cc - 2000cc', '2001cc - 2500cc', '2501cc - 2900cc', 'Above 2900cc'],
-    'EV': ['Up to 10kW', '11kW - 50kW', '51kW - 100kW', '101kW - 200kW', 'Above 200kW']
+    '2w': ['Up to 125cc', '126cc - 150cc', '151cc - 225cc', '226cc - 400cc', '401cc - 650cc', '651cc and above'],
+    '4w': ['Up to 1000cc', '1001cc - 1500cc', '1501cc - 2000cc', '2001cc - 2500cc', '2501cc - 2999cc', '3000cc and above'],
+    'ev2w': ['51W - 350W', '351W - 1000W', '1001W - 1500W', '1501W and above'],
+    'ev4w': ['Up to 50kW', '51kW - 125kW', '126kW - 200kW', 'Above 200kW']
   };
 
   const calculateTax = async (e: React.FormEvent) => {
@@ -59,14 +60,15 @@ export default function VehicleTaxCalculator() {
           <div>
             <label className="block text-sm font-medium text-gray-700">Vehicle Type</label>
             <select 
-              className="mt-1 block w-full border rounded-md p-2"
-              value={formData.vehicle_type}
-              onChange={(e) => setFormData({...formData, vehicle_type: e.target.value, vehicle_category: categories[e.target.value as keyof typeof categories][0]})}
-            >
-              <option value="2w">2-Wheeler</option>
-              <option value="4w">4-Wheeler</option>
-              <option value="EV">Electric (EV)</option>
-            </select>
+  className="mt-1 block w-full border rounded-md p-2"
+  value={formData.vehicle_type}
+  onChange={(e) => setFormData({...formData, vehicle_type: e.target.value, vehicle_category: categories[e.target.value as keyof typeof categories][0]})}
+>
+  <option value="2w">2-Wheeler (Petrol)</option>
+  <option value="4w">4-Wheeler (Petrol)</option>
+  <option value="ev2w">Electric (2-Wheeler)</option>
+  <option value="ev4w">Electric (4-Wheeler)</option>
+</select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">CC / kW Category</label>
@@ -116,19 +118,20 @@ export default function VehicleTaxCalculator() {
       </form>
 
       {result && (
-        <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-xl font-bold text-blue-800">Grand Total:</span>
-            <span className="text-4xl font-black text-blue-900">Rs. {result.grand_total}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4 text-sm text-blue-700">
-            <p><strong>Years Due:</strong> {result.breakdown?.years_total}</p>
-            <p><strong>Current Fine:</strong> {result.breakdown?.current_penalty_pct}</p>
-            <p><strong>Arrears Fine (32%):</strong> Rs. {result.breakdown?.arrears_fine_32}</p>
-            <p><strong>Renewal Subtotal:</strong> Rs. {result.breakdown?.renewal_subtotal}</p>
-          </div>
-        </div>
-      )}
+  <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+    <div className="flex justify-between items-center mb-6">
+      <span className="text-xl font-bold text-blue-800">Grand Total:</span>
+      <span className="text-4xl font-black text-blue-900">Rs. {result.grand_total}</span>
+    </div>
+    <div className="grid grid-cols-2 gap-4 text-sm text-blue-700">
+      <p><strong>Years Due:</strong> {result.breakdown?.years_total}</p>
+      <p><strong>Current Fine:</strong> {result.breakdown?.current_penalty_pct}</p>
+      <p><strong>Tax Principal:</strong> Rs. {result.breakdown?.tax_principal}</p>
+      <p><strong>Renewal Unit:</strong> Rs. {result.breakdown?.renewal_unit}</p>
+      <p className="col-span-2 text-xs italic mt-2 text-blue-500">{result.status_msg}</p>
+    </div>
+  </div>
+)}
     </div>
   );
 }
