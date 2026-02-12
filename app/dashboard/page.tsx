@@ -160,27 +160,32 @@ export default function VehicleTaxCalculator() {
         </button>
       </form>
 
-      {result && (
-        <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-xl font-bold text-blue-800">Grand Total:</span>
-            <span className="text-4xl font-black text-blue-900">Rs. {result.grand_total}</span>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 text-sm text-blue-700">
-            <p><strong>Years Due:</strong> {result.breakdown?.years_total}</p>
-            <p><strong>Fine Status:</strong> {result.breakdown?.current_penalty_pct}</p>
-            <p><strong>Tax Principal:</strong> Rs. {result.breakdown?.tax_principal}</p>
-            <p><strong>Renewal Unit:</strong> Rs. {result.breakdown?.renewal_unit}</p>
-          </div>
-          
-          <div className="mt-4 pt-4 border-t border-blue-200">
-            <p className="text-xs text-blue-600 font-medium italic">
-              Status: {result.status_msg}
-            </p>
-          </div>
-        </div>
-      )}
+     {/* ... your previous useEffect and Form code ... */}
+
+{result && (
+  <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+    <div className="flex justify-between items-center mb-6">
+      <span className="text-xl font-bold text-blue-800">Grand Total:</span>
+      <span className="text-4xl font-black text-blue-900">Rs. {result.grand_total}</span>
+    </div>
+    
+    <div className="grid grid-cols-2 gap-4 text-sm text-blue-700">
+      <p><strong>Years Due:</strong> {result.breakdown?.years_total}</p>
+      <p><strong>Fine Status:</strong> {result.breakdown?.current_penalty_pct}</p>
+      {/* Matches Key 1 */}
+      <p><strong>Tax Principal:</strong> Rs. {result.breakdown?.tax_principal || 0}</p>
+      {/* Matches Key 2 */}
+      <p><strong>Renewal Total:</strong> Rs. {result.breakdown?.renewal_total || 0}</p>
+      <p><strong>Arrears Fine (32%):</strong> Rs. {result.breakdown?.arrears_fine_32 || 0}</p>
+    </div>
+    
+    <div className="mt-4 pt-4 border-t border-blue-200 text-center">
+      <p className="text-xs text-blue-600 font-medium italic">
+        Status: {result.status_msg}
+      </p>
+    </div>
+  </div>
+)}
     </div>
   );
 }
