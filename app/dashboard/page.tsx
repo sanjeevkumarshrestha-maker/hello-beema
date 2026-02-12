@@ -1,25 +1,22 @@
 "use client";
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+// Using relative path to fix the Vercel build error
+import { supabase } from "../../lib/supabase";
 
 export default function HelloBeemaUserFriendly() {
-  // Input States
   const [vehicleType, setVehicleType] = useState("motorcycle");
   const [brands, setBrands] = useState<string[]>([]);
   const [models, setModels] = useState<any[]>([]);
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
-  const [expiryDateBS, setExpiryDateBS] = useState(""); // Format: YYYY-MM-DD
+  const [expiryDateBS, setExpiryDateBS] = useState(""); 
   const [buysInsurance, setBuysInsurance] = useState(true);
-  
-  // UI States
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  // Today's Date in BS (Placeholder logic - you can use a library like ad-bs-converter)
+  // Auto-calculate "Today" in BS (Example placeholder)
   const todayBS = "2082-11-01"; 
 
-  // 1. Fetch Brands based on Type
   useEffect(() => {
     async function getBrands() {
       const { data } = await supabase
@@ -35,7 +32,6 @@ export default function HelloBeemaUserFriendly() {
     getBrands();
   }, [vehicleType]);
 
-  // 2. Fetch Models based on Brand
   useEffect(() => {
     if (selectedBrand) {
       async function getModels() {
@@ -52,7 +48,6 @@ export default function HelloBeemaUserFriendly() {
 
   const handleCalculate = async () => {
     setLoading(true);
-    // Note: p_payment_date_bs is now automated to 'todayBS'
     const { data, error } = await supabase.rpc("calculate_hello_beema_final_v37", {
       p_brand: selectedBrand,
       p_model_name: selectedModel,
@@ -60,24 +55,25 @@ export default function HelloBeemaUserFriendly() {
       p_payment_date_bs: todayBS, 
       p_manufacture_year_ad: 2022, 
       p_buys_insurance: buysInsurance,
-      p_is_commercial: vehicleType.includes("commercial")
+      p_is_commercial: vehicleType.includes("commercial") || vehicleType === "truck"
     });
 
     if (data) setResult(data[0]);
+    if (error) alert("Calculation Error. Check your dates.");
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 font-sans">
+    <div className="min-h-screen bg-slate-50 py-8 px-4 font-sans text-slate-900">
       <div className="max-w-md mx-auto">
-        <header className="mb-6">
-          <h1 className="text-3xl font-black text-blue-900 italic tracking-tighter text-center">HELLO BEEMA</h1>
-          <p className="text-center text-slate-500 font-medium text-sm">Nepal's 1st Digital Bluebook Solution</p>
+        <header className="mb-6 text-center">
+          <h1 className="text-4xl font-black text-blue-900 italic tracking-tighter">HELLO BEEMA</h1>
+          <div className="h-1 w-20 bg-orange-500 mx-auto mt-1 rounded-full"></div>
         </header>
 
-        <main className="bg-white rounded-3xl shadow-2xl p-6 border border-slate-100">
+        <main className="bg-white rounded-[2.5rem] shadow-2xl p-6 border border-slate-100">
           <div className="space-y-6">
-            {/* 1. Vehicle Type Selector */}
+            {/* 1. VEHICLE TYPE TOGGLES */}
             <div className="grid grid-cols-3 gap-2">
               {[
                 { id: "motorcycle", label: "2W Petrol" },
@@ -90,8 +86,10 @@ export default function HelloBeemaUserFriendly() {
                 <button
                   key={type.id}
                   onClick={() => setVehicleType(type.id)}
-                  className={`p-2 rounded-xl text-[10px] font-bold uppercase transition-all border-2 ${
-                    vehicleType === type.id ? "bg-blue-900 text-white border-blue-900" : "bg-white text-slate-400 border-slate-100"
+                  className={`py-3 px-1 rounded-2xl text-[10px] font-black uppercase transition-all border-2 ${
+                    vehicleType === type.id 
+                      ? "bg-blue-900 text-white border-blue-900 shadow-lg shadow-blue-200" 
+                      : "bg-slate-50 text-slate-400 border-transparent hover:border-slate-200"
                   }`}
                 >
                   {type.label}
@@ -99,71 +97,83 @@ export default function HelloBeemaUserFriendly() {
               ))}
             </div>
 
-            {/* 2. Brand & Model Selection */}
-            <div className="space-y-4">
+            {/* 2. BRAND & MODEL */}
+            <div className="space-y-3">
               <select 
                 onChange={(e) => setSelectedBrand(e.target.value)}
-                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-bold border-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-bold border-none appearance-none"
                 value={selectedBrand}
               >
-                <option value="">Choose Brand (e.g. Bajaj)</option>
+                <option value="">Choose Brand</option>
                 {brands.map(b => <option key={b}>{b}</option>)}
               </select>
 
               <select 
                 onChange={(e) => setSelectedModel(e.target.value)}
-                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-bold border-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-bold border-none appearance-none disabled:opacity-50"
                 disabled={!selectedBrand}
                 value={selectedModel}
               >
-                <option value="">Choose Model (e.g. Pulsar 150)</option>
+                <option value="">Choose Model</option>
                 {models.map(m => <option key={m.model_name}>{m.model_name}</option>)}
               </select>
             </div>
 
-            {/* 3. Nepali Date Expiry */}
+            {/* 3. NEPALI DATE PICKER (Manual Input for stability) */}
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase ml-1">Bluebook Expiry Date (Nepali)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bluebook Expiry (BS)</label>
               <input 
                 type="text" 
                 placeholder="YYYY-MM-DD (e.g. 2081-10-25)" 
-                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-mono font-bold border-none"
+                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-mono font-bold border-none focus:ring-2 focus:ring-blue-500"
                 value={expiryDateBS}
                 onChange={(e) => setExpiryDateBS(e.target.value)}
               />
             </div>
 
-            {/* 4. Options */}
-            <div className="flex items-center justify-between p-4 bg-green-50 rounded-2xl">
-              <span className="text-sm font-bold text-green-900">Include Insurance?</span>
+            {/* 4. INSURANCE TOGGLE */}
+            <label className="flex items-center justify-between p-4 bg-blue-50/50 rounded-2xl cursor-pointer">
+              <span className="text-sm font-bold text-blue-900">Include Insurance</span>
               <input 
                 type="checkbox" 
                 checked={buysInsurance} 
                 onChange={(e) => setBuysInsurance(e.target.checked)}
-                className="w-6 h-6 accent-green-600"
+                className="w-6 h-6 accent-blue-600 rounded-lg"
               />
-            </div>
+            </label>
 
             <button 
               onClick={handleCalculate}
               disabled={loading || !selectedModel || !expiryDateBS}
-              className="w-full py-5 bg-blue-900 text-white rounded-2xl font-black text-lg shadow-lg active:scale-95 transition-all disabled:opacity-30"
+              className="w-full py-5 bg-blue-900 text-white rounded-2xl font-black text-lg shadow-xl hover:bg-blue-800 active:scale-95 transition-all disabled:opacity-20"
             >
-              {loading ? "Calculating..." : "Calculate Final Bill"}
+              {loading ? "Calculating..." : "See Final Bill"}
             </button>
           </div>
 
-          {/* Result Breakdown */}
+          {/* RESULTS AREA */}
           {result && (
-            <div className="mt-8 bg-slate-900 rounded-3xl p-6 text-white animate-in zoom-in-95 duration-300">
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest text-center mb-1">Total to Pay via eSewa</p>
-              <h2 className="text-4xl font-black text-center mb-6">Rs. {result.grand_total}</h2>
+            <div className="mt-8 bg-blue-950 rounded-[2rem] p-6 text-white shadow-2xl border border-white/5">
+              <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest text-center mb-1">Total Payable</p>
+              <h2 className="text-4xl font-black text-center mb-6 text-blue-50">Rs. {result.grand_total}</h2>
               
-              <div className="space-y-3 text-xs">
-                <div className="flex justify-between border-b border-white/10 pb-2"><span>Govt Tax Principal</span><span className="font-bold">Rs. {result.breakdown.tax_principal}</span></div>
-                <div className="flex justify-between border-b border-white/10 pb-2"><span>Arrears & Fines</span><span className="font-bold text-red-400">Rs. {result.breakdown.renewal_charge}</span></div>
-                <div className="flex justify-between border-b border-white/10 pb-2"><span>3rd Party Insurance</span><span className="font-bold text-green-400">Rs. {result.breakdown.insurance_tp}</span></div>
-                <div className="flex justify-between font-bold text-orange-400"><span>Hello Beema Service Fee</span><span>Rs. {result.breakdown.service_fee}</span></div>
+              <div className="space-y-4 text-[11px] font-medium opacity-90">
+                <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                  <span>Govt Tax Principal</span>
+                  <span className="text-sm font-bold">Rs. {result.breakdown.tax_principal}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                  <span>Late Fines & Arrears</span>
+                  <span className="text-sm font-bold text-orange-400">Rs. {result.breakdown.renewal_charge}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                  <span>3rd Party Insurance</span>
+                  <span className="text-sm font-bold text-green-400">Rs. {result.breakdown.insurance_tp}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 text-blue-200">
+                  <span className="font-bold uppercase tracking-widest text-[9px]">Hello Beema Fee</span>
+                  <span className="text-sm font-black">Rs. {result.breakdown.service_fee}</span>
+                </div>
               </div>
             </div>
           )}
