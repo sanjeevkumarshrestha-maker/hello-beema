@@ -14,9 +14,7 @@ export default function HelloBeemaUserFriendly() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  // Auto-calculate "Today" in BS (Example placeholder)
-  const todayBS = "2082-11-01"; 
-
+  // Fetch Brands based on Vehicle Type
   useEffect(() => {
     async function getBrands() {
       const { data } = await supabase
@@ -32,6 +30,7 @@ export default function HelloBeemaUserFriendly() {
     getBrands();
   }, [vehicleType]);
 
+  // Fetch Models based on Brand
   useEffect(() => {
     if (selectedBrand) {
       async function getModels() {
@@ -48,18 +47,24 @@ export default function HelloBeemaUserFriendly() {
 
   const handleCalculate = async () => {
     setLoading(true);
+    setResult(null); // Clear old data to prevent UI flickering
+
     const { data, error } = await supabase.rpc("calculate_hello_beema_final_v37", {
       p_brand: selectedBrand,
       p_model_name: selectedModel,
       p_expiry_date_bs: expiryDateBS,
-      p_payment_date_bs: todayBS, 
+      p_payment_date_bs: null, // Let SQL Brain handle current date auto-detect
       p_manufacture_year_ad: 2022, 
       p_buys_insurance: buysInsurance,
       p_is_commercial: vehicleType.includes("commercial") || vehicleType === "truck"
     });
 
-    if (data) setResult(data[0]);
-    if (error) alert("Calculation Error. Check your dates.");
+    if (data && data[0]) {
+      setResult(data[0]);
+    } else {
+      console.error('Calculation Error:', error);
+      alert("Calculation Error. Please verify the brand, model, and date (YYYY-MM-DD).");
+    }
     setLoading(false);
   };
 
@@ -119,7 +124,7 @@ export default function HelloBeemaUserFriendly() {
               </select>
             </div>
 
-            {/* 3. NEPALI DATE PICKER (Manual Input for stability) */}
+            {/* 3. NEPALI DATE PICKER (Manual Input) */}
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bluebook Expiry (BS)</label>
               <input 
@@ -151,34 +156,6 @@ export default function HelloBeemaUserFriendly() {
             </button>
           </div>
 
-          {/* RESULTS AREA */}
+          {/* RESULTS AREA - MAPPED TO V37 KEYS */}
           {result && (
-            <div className="mt-8 bg-blue-950 rounded-[2rem] p-6 text-white shadow-2xl border border-white/5">
-              <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest text-center mb-1">Total Payable</p>
-              <h2 className="text-4xl font-black text-center mb-6 text-blue-50">Rs. {result.grand_total}</h2>
-              
-              <div className="space-y-4 text-[11px] font-medium opacity-90">
-                <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                  <span>Govt Tax Principal</span>
-                  <span className="text-sm font-bold">Rs. {result.breakdown.tax_principal}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                  <span>Late Fines & Arrears</span>
-                  <span className="text-sm font-bold text-orange-400">Rs. {result.breakdown.renewal_charge}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                  <span>3rd Party Insurance</span>
-                  <span className="text-sm font-bold text-green-400">Rs. {result.breakdown.insurance_tp}</span>
-                </div>
-                <div className="flex justify-between items-center pt-2 text-blue-200">
-                  <span className="font-bold uppercase tracking-widest text-[9px]">Hello Beema Fee</span>
-                  <span className="text-sm font-black">Rs. {result.breakdown.service_fee}</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
-    </div>
-  );
-}
+            <div className="
