@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-// Using relative path to fix the Vercel build error
 import { supabase } from "../../lib/supabase";
 
 export default function HelloBeemaUserFriendly() {
@@ -14,7 +13,6 @@ export default function HelloBeemaUserFriendly() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch Brands based on Vehicle Type
   useEffect(() => {
     async function getBrands() {
       const { data } = await supabase
@@ -30,7 +28,6 @@ export default function HelloBeemaUserFriendly() {
     getBrands();
   }, [vehicleType]);
 
-  // Fetch Models based on Brand
   useEffect(() => {
     if (selectedBrand) {
       async function getModels() {
@@ -47,13 +44,13 @@ export default function HelloBeemaUserFriendly() {
 
   const handleCalculate = async () => {
     setLoading(true);
-    setResult(null); // Clear old data to prevent UI flickering
+    setResult(null);
 
     const { data, error } = await supabase.rpc("calculate_hello_beema_final_v37", {
       p_brand: selectedBrand,
       p_model_name: selectedModel,
       p_expiry_date_bs: expiryDateBS,
-      p_payment_date_bs: null, // Let SQL Brain handle current date auto-detect
+      p_payment_date_bs: null, 
       p_manufacture_year_ad: 2022, 
       p_buys_insurance: buysInsurance,
       p_is_commercial: vehicleType.includes("commercial") || vehicleType === "truck"
@@ -63,7 +60,7 @@ export default function HelloBeemaUserFriendly() {
       setResult(data[0]);
     } else {
       console.error('Calculation Error:', error);
-      alert("Calculation Error. Please verify the brand, model, and date (YYYY-MM-DD).");
+      alert("Check input details.");
     }
     setLoading(false);
   };
@@ -78,7 +75,6 @@ export default function HelloBeemaUserFriendly() {
 
         <main className="bg-white rounded-[2.5rem] shadow-2xl p-6 border border-slate-100">
           <div className="space-y-6">
-            {/* 1. VEHICLE TYPE TOGGLES */}
             <div className="grid grid-cols-3 gap-2">
               {[
                 { id: "motorcycle", label: "2W Petrol" },
@@ -91,9 +87,9 @@ export default function HelloBeemaUserFriendly() {
                 <button
                   key={type.id}
                   onClick={() => setVehicleType(type.id)}
-                  className={`py-3 px-1 rounded-2xl text-[10px] font-black uppercase transition-all border-2 ${
+                  className={`py-3 px-1 rounded-2xl text-[10px] font-black uppercase border-2 transition-all ${
                     vehicleType === type.id 
-                      ? "bg-blue-900 text-white border-blue-900 shadow-lg shadow-blue-200" 
+                      ? "bg-blue-900 text-white border-blue-900 shadow-lg" 
                       : "bg-slate-50 text-slate-400 border-transparent hover:border-slate-200"
                   }`}
                 >
@@ -102,11 +98,10 @@ export default function HelloBeemaUserFriendly() {
               ))}
             </div>
 
-            {/* 2. BRAND & MODEL */}
             <div className="space-y-3">
               <select 
                 onChange={(e) => setSelectedBrand(e.target.value)}
-                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-bold border-none appearance-none"
+                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-bold border-none"
                 value={selectedBrand}
               >
                 <option value="">Choose Brand</option>
@@ -115,7 +110,7 @@ export default function HelloBeemaUserFriendly() {
 
               <select 
                 onChange={(e) => setSelectedModel(e.target.value)}
-                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-bold border-none appearance-none disabled:opacity-50"
+                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-bold border-none disabled:opacity-50"
                 disabled={!selectedBrand}
                 value={selectedModel}
               >
@@ -124,19 +119,17 @@ export default function HelloBeemaUserFriendly() {
               </select>
             </div>
 
-            {/* 3. NEPALI DATE PICKER (Manual Input) */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bluebook Expiry (BS)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Expiry Date (BS)</label>
               <input 
                 type="text" 
-                placeholder="YYYY-MM-DD (e.g. 2081-10-25)" 
-                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-mono font-bold border-none focus:ring-2 focus:ring-blue-500"
+                placeholder="YYYY-MM-DD" 
+                className="w-full bg-slate-50 rounded-2xl p-4 text-sm font-mono font-bold border-none"
                 value={expiryDateBS}
                 onChange={(e) => setExpiryDateBS(e.target.value)}
               />
             </div>
 
-            {/* 4. INSURANCE TOGGLE */}
             <label className="flex items-center justify-between p-4 bg-blue-50/50 rounded-2xl cursor-pointer">
               <span className="text-sm font-bold text-blue-900">Include Insurance</span>
               <input 
@@ -150,12 +143,41 @@ export default function HelloBeemaUserFriendly() {
             <button 
               onClick={handleCalculate}
               disabled={loading || !selectedModel || !expiryDateBS}
-              className="w-full py-5 bg-blue-900 text-white rounded-2xl font-black text-lg shadow-xl hover:bg-blue-800 active:scale-95 transition-all disabled:opacity-20"
+              className="w-full py-5 bg-blue-900 text-white rounded-2xl font-black text-lg shadow-xl hover:bg-blue-800 disabled:opacity-20 transition-all"
             >
               {loading ? "Calculating..." : "See Final Bill"}
             </button>
           </div>
 
-          {/* RESULTS AREA - MAPPED TO V37 KEYS */}
           {result && (
-            <div className="
+            <div className="mt-8 bg-blue-950 rounded-[2rem] p-6 text-white shadow-2xl border border-white/5">
+              <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest text-center mb-1">Total Payable</p>
+              <h2 className="text-4xl font-black text-center mb-6 text-blue-50">Rs. {result.grand_total}</h2>
+              
+              <div className="space-y-4 text-[11px] font-medium opacity-90">
+                <div className="flex justify-between border-b border-white/10 pb-2">
+                  <span>Govt Tax Principal</span>
+                  <span className="font-bold">Rs. {result.breakdown.tax_principal}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/10 pb-2">
+                  <span>Late Fines & Arrears</span>
+                  <span className="font-bold text-orange-400">
+                    Rs. {Number(result.breakdown.renewal_charge) + Number(result.breakdown.current_fine) + Number(result.breakdown.arrears_32)}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-white/10 pb-2">
+                  <span>3rd Party Insurance</span>
+                  <span className="font-bold text-green-400">Rs. {result.breakdown.insurance_premium}</span>
+                </div>
+                <div className="flex justify-between pt-2 text-blue-200">
+                  <span className="font-bold uppercase tracking-widest text-[9px]">Hello Beema Fee</span>
+                  <span className="font-black">Rs. {result.breakdown.service_charge}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
